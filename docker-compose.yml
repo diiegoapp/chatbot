@@ -1,0 +1,26 @@
+services:
+  app:
+    build: .
+    ports:
+      - "8080:80"
+    environment:
+      APP_NAME: Chatbot
+      APP_ENV: production
+      APP_DEBUG: "false"
+      APP_URL: http://localhost:8080
+      APP_LOCALE: pt_BR
+      DB_CONNECTION: sqlite
+      ZAI_API_KEY: ${ZAI_API_KEY}
+      ZAI_BASE_URL: https://api.z.ai/api/paas/v4
+      ZAI_MODEL: glm-4.5-flash
+      ZAI_TIMEOUT: "60"
+      ZAI_MAX_TOKENS: "1024"
+      ZAI_THINKING: disabled
+      CHATBOT_STREAMING: "false"
+    volumes:
+      - db_data:/var/www/html/database
+      - storage_data:/var/www/html/storage
+
+volumes:
+  db_data:
+  storage_data:

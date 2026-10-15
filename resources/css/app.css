@@ -1,0 +1,33 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    html {
+        height: -webkit-fill-available;
+    }
+    body {
+        min-height: 100dvh;
+        min-height: -webkit-fill-available;
+    }
+}
+
+@layer components {
+    /* Code blocks inside prose */
+    .prose pre {
+        @apply bg-gray-900 dark:bg-gray-950 text-gray-100 rounded-xl overflow-x-auto text-sm relative;
+    }
+
+    .prose pre code {
+        @apply bg-transparent text-inherit p-0;
+    }
+
+    .prose code:not(pre code) {
+        @apply bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 px-1.5 py-0.5 rounded text-xs font-mono before:content-none after:content-none;
+    }
+
+    /* Safe area padding for input on mobile */
+    .safe-area-bottom {
+        padding-bottom: max(1rem, env(safe-area-inset-bottom));
+    }
+}
