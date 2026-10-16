@@ -1,6 +1,97 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@plugin "@tailwindcss/forms";
+@plugin "@tailwindcss/typography";
+
+/* Alpine cloak: hide before init */
+[x-cloak] { display: none !important; }
+
+.sidebar-toggle-button {
+    width: 2.5rem;
+    height: 2.5rem;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.5rem;
+    color: #6366f1;
+    transition: color 150ms ease, background-color 150ms ease;
+}
+.sidebar-toggle-button:hover {
+    color: #4338ca;
+    background-color: rgb(99 102 241 / 10%);
+}
+.dark .sidebar-toggle-button { color: #a5b4fc; }
+.dark .sidebar-toggle-button:hover { color: #fff; }
+.sidebar-toggle-button:focus-visible {
+    outline: 2px solid #6366f1;
+    outline-offset: 2px;
+}
+
+.message-composer {
+    background: linear-gradient(to bottom, transparent, #f9fafb 1.75rem);
+}
+.dark .message-composer {
+    background: linear-gradient(to bottom, transparent, #111827 1.75rem);
+}
+
+/* Sidebar: fixed drawer on mobile and full-height panel beside the desktop content. */
+#main-sidebar {
+    transform: translateX(-100%);
+    visibility: hidden;
+    /* on close: slide out first, then hide */
+    transition: transform 200ms ease-in-out, visibility 0s linear 200ms;
+}
+#main-sidebar.sidebar-open {
+    transform: translateX(0);
+    visibility: visible;
+    /* on open: show immediately, slide in */
+    transition: transform 200ms ease-in-out, visibility 0s linear 0s;
+}
+@media (min-width: 768px) {
+    /* The class is set in <head>, before Alpine starts, so a saved open state never flashes closed. */
+    html.sidebar-open #main-sidebar {
+        transform: translateX(0);
+        visibility: visible;
+        transition: transform 200ms ease-in-out, visibility 0s linear 0s;
+    }
+    .chat-main {
+        margin-left: 0;
+        transition: margin-left 200ms ease-in-out;
+    }
+    html.sidebar-open .chat-main {
+        margin-left: 16rem;
+    }
+    .header-sidebar-button {
+        opacity: 1;
+        visibility: visible;
+        flex-basis: 2.5rem;
+        margin-right: 0;
+        transition: opacity 150ms ease-in-out, visibility 0s linear 0s, flex-basis 200ms ease-in-out, width 200ms ease-in-out, margin-right 200ms ease-in-out;
+    }
+    html.sidebar-open .header-sidebar-button {
+        opacity: 0;
+        visibility: hidden;
+        flex-basis: 0;
+        width: 0;
+        margin-right: -0.75rem;
+        overflow: hidden;
+        transition: opacity 150ms ease-in-out, visibility 0s linear 150ms, flex-basis 200ms ease-in-out, width 200ms ease-in-out, margin-right 200ms ease-in-out;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    #main-sidebar,
+    #main-sidebar.sidebar-open,
+    html.sidebar-open #main-sidebar,
+    .chat-main,
+    .header-sidebar-button,
+    html.sidebar-open .header-sidebar-button,
+    .sidebar-toggle-button { transition: none; }
+}
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+    --font-family-sans: 'Figtree', ui-sans-serif, system-ui, sans-serif;
+}
 
 @layer base {
     html {

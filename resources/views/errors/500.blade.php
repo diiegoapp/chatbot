@@ -4,6 +4,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Erro interno · {{ config('app.name', 'Chatbot') }}</title>
+    <link rel="icon" href="/favicon.svg?v=2" type="image/svg+xml">
+    <link rel="icon" href="/favicon.ico?v=2" sizes="any">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=2">
     <script>
         (function () {
             const s = localStorage.getItem('theme');

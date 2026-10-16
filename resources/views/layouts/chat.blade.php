@@ -6,6 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ config('app.name') }}</title>
+    <link rel="icon" href="/favicon.svg?v=2" type="image/svg+xml">
+    <link rel="icon" href="/favicon.ico?v=2" sizes="any">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=2">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="h-full bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">

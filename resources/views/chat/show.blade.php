@@ -15,17 +15,17 @@
     @regen-request.document="regenerate()"
     class="flex flex-col flex-1 min-h-0 overflow-hidden"
 >
-    {{-- Messages area --}}
+    {{-- Messages and composer share one scrollable, width-constrained column. --}}
     <div
         id="messages"
         x-ref="messages"
         @scroll="checkScroll()"
-        class="flex-1 overflow-y-auto"
-        aria-live="polite"
+        class="flex-1 min-h-0 overflow-y-auto"
         aria-label="Mensagens da conversa"
     >
+        <div id="conversation-column" class="flex flex-col min-h-full max-w-3xl mx-auto px-4">
         {{-- Empty state --}}
-        <div x-show="!hasMessages" class="flex flex-col items-center justify-center h-full p-8 text-center">
+        <div id="empty-suggestions" x-show="!hasMessages" class="flex flex-col items-center justify-center flex-1 py-8 text-center">
             <div class="text-5xl mb-4">💬</div>
             <h2 class="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">Como posso ajudar?</h2>
             <p class="text-gray-500 dark:text-gray-400 mb-8 max-w-sm text-balance">Escreva uma mensagem ou escolha uma sugestão para começar.</p>
@@ -46,7 +46,7 @@
         </div>
 
         {{-- Messages list --}}
-        <div x-show="hasMessages" class="max-w-3xl mx-auto px-4 py-6 space-y-6">
+        <div id="message-list" x-ref="messageList" x-show="hasMessages" class="flex-1 py-6 space-y-6" aria-live="polite">
             @foreach($messages as $message)
                 <x-chat.message
                     :message="$message"
@@ -66,43 +66,37 @@
                 </div>
             </div>
         </div>
-    </div>
-
-    {{-- Scroll-to-bottom button --}}
-    <div class="relative">
-        <button
-            x-show="!isAtBottom"
-            x-cloak
-            @click="forceScrollBottom()"
-            class="absolute bottom-2 right-4 z-10 w-9 h-9 rounded-full bg-white dark:bg-gray-700 shadow-md border border-gray-200 dark:border-gray-600 flex items-center justify-center text-gray-500 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
-            aria-label="Ir para o fim">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-            </svg>
-        </button>
-    </div>
-
-    {{-- Error banner --}}
-    <div
-        x-show="errorMsg"
-        x-cloak
-        class="mx-4 mb-2 px-4 py-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-xl text-red-700 dark:text-red-300 text-sm flex items-center justify-between gap-2"
-        role="alert"
-    >
-        <span x-text="errorMsg" class="flex-1"></span>
-        <div class="flex items-center gap-2 flex-shrink-0">
+        {{-- Composer stays at the bottom of the same message column. --}}
+        <div id="message-composer" class="message-composer sticky bottom-0 z-10 flex-shrink-0 pt-7 safe-area-bottom">
+            {{-- Scroll-to-bottom button rides above the composer, even as it grows. --}}
             <button
-                x-show="pendingContent"
-                @click="retrySend()"
-                class="text-xs font-medium underline hover:no-underline"
-                aria-label="Tentar novamente">Tentar novamente</button>
-            <button @click="errorMsg = ''; pendingContent = ''" class="text-red-500 hover:text-red-700 text-lg leading-none" aria-label="Fechar erro">&times;</button>
-        </div>
-    </div>
+                x-show="!isAtBottom"
+                x-cloak
+                @click="forceScrollBottom()"
+                class="absolute -top-8 right-0 z-20 w-9 h-9 rounded-full bg-white dark:bg-gray-700 shadow-md border border-gray-200 dark:border-gray-600 flex items-center justify-center text-gray-500 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+                aria-label="Ir para o fim">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                </svg>
+            </button>
+            {{-- Error banner --}}
+            <div
+                x-show="errorMsg"
+                x-cloak
+                class="mb-2 px-4 py-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-xl text-red-700 dark:text-red-300 text-sm flex items-center justify-between gap-2"
+                role="alert"
+            >
+                <span x-text="errorMsg" class="flex-1"></span>
+                <div class="flex items-center gap-2 flex-shrink-0">
+                    <button
+                        x-show="pendingContent"
+                        @click="retrySend()"
+                        class="text-xs font-medium underline hover:no-underline"
+                        aria-label="Tentar novamente">Tentar novamente</button>
+                    <button @click="errorMsg = ''; pendingContent = ''" class="text-red-500 hover:text-red-700 text-lg leading-none" aria-label="Fechar erro">&times;</button>
+                </div>
+            </div>
 
-    {{-- Input area --}}
-    <div class="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 py-4 flex-shrink-0 safe-area-bottom">
-        <div class="max-w-3xl mx-auto px-4">
             <form @submit.prevent="sendMessage()" class="flex items-end gap-3">
                 <textarea
                     x-ref="input"
@@ -119,12 +113,13 @@
                     :disabled="sending || !draft.trim()"
                     class="flex-shrink-0 w-10 h-10 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:bg-gray-300 dark:disabled:bg-gray-600 text-white flex items-center justify-center transition-colors"
                     aria-label="Enviar mensagem">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M12 5l7 7-7 7"/>
                     </svg>
                 </button>
             </form>
             <p class="text-xs text-gray-400 dark:text-gray-500 mt-1.5 text-center select-none">Enter envia · Shift+Enter quebra linha</p>
+        </div>
         </div>
     </div>
 </div>
@@ -216,7 +211,7 @@ function chatApp(endpoint, regenEndpoint, streaming, userInitial, conversationId
         },
 
         appendMessage(role, html, raw) {
-            const container = this.$refs.messages.querySelector('.max-w-3xl') || this.$refs.messages;
+            const container = this.$refs.messageList;
             const wrapper = document.createElement('div');
 
             if (role === 'assistant') {
@@ -270,7 +265,7 @@ function chatApp(endpoint, regenEndpoint, streaming, userInitial, conversationId
         async regenerate() {
             if (this.sending) return;
 
-            const container = this.$refs.messages.querySelector('.max-w-3xl') || this.$refs.messages;
+            const container = this.$refs.messageList;
             const allAssistant = container.querySelectorAll('[data-role="assistant"]');
             const lastAssistantEl = allAssistant[allAssistant.length - 1];
             if (! lastAssistantEl) return;
@@ -467,7 +462,7 @@ function chatApp(endpoint, regenEndpoint, streaming, userInitial, conversationId
                             this.typing = false;
                             buffer += event.delta;
                             if (!assistantEl) {
-                                const container = this.$refs.messages.querySelector('.max-w-3xl') || this.$refs.messages;
+                                const container = this.$refs.messageList;
                                 assistantEl = document.createElement('div');
                                 assistantEl.className = 'group flex items-start gap-3';
                                 assistantEl.setAttribute('data-role', 'assistant');
