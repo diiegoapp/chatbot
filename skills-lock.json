@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "skills": {
+    "laravel-patterns": {
+      "source": "affaan-m/everything-claude-code",
+      "sourceType": "github",
+      "skillPath": "skills/laravel-patterns/SKILL.md",
+      "computedHash": "58d3d0c9c98dff80c4a4e0d28e7b3ddf8cbb2b941338a4d3780aff53f52f146e"
+    },
+    "laravel-security": {
+      "source": "affaan-m/everything-claude-code",
+      "sourceType": "github",
+      "skillPath": "skills/laravel-security/SKILL.md",
+      "computedHash": "e2a786820035a5759adbaa80f5356eb092e49983a82d633fab0d2bb23a68dc07"
+    },
+    "laravel-tdd": {
+      "source": "affaan-m/everything-claude-code",
+      "sourceType": "github",
+      "skillPath": "skills/laravel-tdd/SKILL.md",
+      "computedHash": "2b30678c04801d14ef4b0f5449430d1a524222061283b0ee88aec5e77b10d3b3"
+    },
+    "laravel-verification": {
+      "source": "affaan-m/everything-claude-code",
+      "sourceType": "github",
+      "skillPath": "skills/laravel-verification/SKILL.md",
+      "computedHash": "a5a1c2fdb15fbfa05f78cdb8368a62b6b405c5d44eb56e93e637acf446d3f1a1"
+    }
+  }
+}

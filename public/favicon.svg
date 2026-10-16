@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Chatbot">
+    <rect x="1" y="1" width="30" height="30" rx="7" fill="#4f46e5"/>
+    <path d="M10 7h12a5 5 0 0 1 5 5v6a5 5 0 0 1-5 5h-5l-6 4v-4h-1a5 5 0 0 1-5-5v-6a5 5 0 0 1 5-5z" fill="#fff"/>
+    <g fill="#4f46e5">
+        <circle cx="11.5" cy="15" r="1.2"/>
+        <circle cx="16" cy="15" r="1.2"/>
+        <circle cx="20.5" cy="15" r="1.2"/>
+    </g>
+</svg>

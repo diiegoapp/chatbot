@@ -1,81 +1,139 @@
-# Chatbot App
+# Chatbot — Laravel + Z.AI (GLM)
 
-## Visão Geral
+> **EN:** A full-stack chatbot built with Laravel 13 + Blade + Alpine.js, backed by Z.AI's GLM language models. Multi-conversation history, Markdown rendering, real authentication, SQLite by default.
 
-Este repositório contém o código-fonte de um aplicativo de Chatbot, implementado usando React para o frontend. O aplicativo inclui recursos como autenticação de usuário, uma interface de chat e uma página de login. A estrutura do projeto está organizada com diferentes componentes e páginas.
+---
 
-## Índice
+## O que é
 
-- [Estrutura de Pastas](#estrutura-de-pastas)
-- [Tecnologias Utilizadas](#tecnologias-utilizadas)
-- [Como Executar](#como-executar)
-- [Uso](#uso)
-- [Recursos](#recursos)
-- [Contribuições](#contribuições)
-- [Licença](#licença)
-- [Contato](#contato)
+Aplicação web de chatbot monolítica com histórico de conversas persistido. Cada usuário tem suas próprias conversas (isoladas por política de autorização). As respostas vêm de um LLM real via [Z.AI](https://z.ai) (modelos GLM, API compatível com OpenAI).
 
-## Estrutura de Pastas
+## Funcionalidades
 
-O projeto está organizado nas seguintes pastas principais:
+- Cadastro e login com validação de senha forte (Laravel Breeze)
+- Múltiplas conversas por usuário, com histórico permanente
+- Título automático gerado a partir da primeira mensagem (sem pontuação final)
+- Agrupamento de conversas na sidebar por data: Hoje, Ontem, Últimos 7 dias, Mais antigas
+- Renomear e excluir conversas diretamente na sidebar (inline, sem recarregar)
+- Renderização segura de Markdown nas respostas (CommonMark, XSS mitigado)
+- Botão de copiar por resposta da IA e por bloco de código
+- Regenerar última resposta da IA com um clique (histórico sem a resposta anterior)
+- Cards de sugestões no estado vazio para iniciar conversa rapidamente
+- Tema claro/escuro com persistência em `localStorage` e respeito a `prefers-color-scheme`
+- Interface responsiva: sidebar recolhível, safe area no mobile, 44px de área de toque
+- Rate limit de 20 mensagens/minuto por usuário
+- Suporte a streaming SSE (desativado por padrão; veja Variáveis de Ambiente)
 
-- **src:** Contém o código-fonte para a aplicação React.
-  - **components:** Componentes de IU reutilizáveis usados em todo o aplicativo.
-  - **context:** Provedores e consumidores de contexto para gerenciar o estado em nível de aplicativo.
-  - **hooks:** Hooks personalizados para várias funcionalidades.
-  - **pages:** Componentes React representando diferentes páginas do aplicativo.
-  - **utils:** Funções utilitárias usadas em todo o aplicativo.
+## Stack
 
-## Tecnologias Utilizadas
+| Camada | Tecnologia |
+|---|---|
+| Backend | PHP 8.4, Laravel 13 |
+| Auth | Laravel Breeze (Blade stack) |
+| Frontend | Blade, Alpine.js, Tailwind CSS |
+| Banco | SQLite (zero configuração) |
+| IA | Z.AI (GLM-4.5-flash) |
+| Markdown | league/commonmark |
+| Testes | PHPUnit, Http::fake() |
+| CI | GitHub Actions |
 
-- React: Uma biblioteca JavaScript para construir interfaces de usuário.
-- React Router: Para lidar com a navegação dentro do aplicativo.
-- Styled Components: Para estilizar componentes React com literais marcados.
-- FontAwesome: Para incorporar ícones de fontes na aplicação.
-- React Spinners: Para exibir spinners de carregamento.
+## Diagrama de Arquitetura
 
-## Como Executar
+```mermaid
+graph LR
+    Browser -->|HTTPS| Laravel
+    Laravel -->|Auth + Policy| DB[(SQLite)]
+    Laravel -->|ZaiClient| ZAI[Z.AI API<br>GLM-4.5-flash]
+    ZAI -->|choices[0].message.content| Laravel
+    Laravel -->|JSON / SSE| Browser
+    Laravel -->|Conversations + Messages| DB
+```
 
-Para executar o aplicativo localmente, siga estas etapas:
+## Como rodar
 
-1. Clone o repositório:
+```bash
+# 1. Clonar e instalar dependências
+git clone https://github.com/diiegoapp/chatbot
+cd chatbot
+composer install
 
-   ```bash
-   git clone <url_do_repositório>
-   
-2. Navegue até a pasta do projeto:
-   ```bash
-   cd <pasta_do_projeto>
+# 2. Configurar o ambiente
+cp .env.example .env
+php artisan key:generate
 
-3. Instale as dependências:
-   ```bash
-   npm install
+# 3. Banco de dados
+touch database/database.sqlite
+php artisan migrate
 
-4. Abra seu navegador e vá para http://localhost:3000 para visualizar o aplicativo.
+# 4. Adicionar sua chave Z.AI no .env
+#    ZAI_API_KEY=sua_chave_aqui
 
-## Uso
+# 5. Build do frontend
+npm install && npm run build
 
-O aplicativo consiste em várias páginas, incluindo uma página inicial com uma interface de chat e uma página de login. Os usuários podem fazer login e usar os recursos de chat. O aplicativo oferece um design responsivo para diferentes tamanhos de tela.
+# 6. Iniciar o servidor
+php artisan serve
+```
 
-## Recursos
+Acesse: http://localhost:8000
 
-1.Autenticação: Os usuários podem fazer login para acessar os recursos de chat.
-2.Interface de Chat: Uma interface de chat é fornecida para que os usuários possam interagir com o chatbot.
-3.Spinner de Carregamento: Um spinner de carregamento é exibido durante a recuperação de dados ou operações.
-4. Validação de Formulário: Os campos de entrada são validados, e mensagens de erro são exibidas quando necessário.
+## Variáveis de Ambiente
 
-## Contribuições
+| Variável | Padrão | Descrição |
+|---|---|---|
+| `ZAI_API_KEY` | — | **Obrigatório.** Chave da Z.AI |
+| `ZAI_BASE_URL` | `https://api.z.ai/api/paas/v4` | Endpoint da API |
+| `ZAI_MODEL` | `glm-4.5-flash` | Modelo GLM a usar |
+| `ZAI_TIMEOUT` | `60` | Timeout em segundos |
+| `ZAI_MAX_TOKENS` | `1024` | Máximo de tokens por resposta |
+| `ZAI_THINKING` | `disabled` | Raciocínio interno do modelo |
+| `CHATBOT_STREAMING` | `false` | Habilita SSE streaming |
+| `CHATBOT_CONTEXT_WINDOW` | `20` | Mensagens enviadas como contexto |
+| `CHATBOT_MAX_MESSAGE_LENGTH` | `4000` | Tamanho máximo de mensagem (chars) |
 
-Contribuições são bem-vindas! Se encontrar bugs ou tiver sugestões de melhorias, abra uma issue ou envie um pull request.
+## Rodando os testes
+
+```bash
+php artisan test
+```
+
+Para verificar o estilo de código:
+
+```bash
+./vendor/bin/pint --test
+```
+
+## Smoke test da API (opcional)
+
+Após preencher a `ZAI_API_KEY` no `.env`:
+
+```bash
+php scripts/smoke-test-ai.php
+```
+
+## Decisões técnicas
+
+Veja [docs/DECISIONS.md](docs/DECISIONS.md).
+
+## Limitações conhecidas
+
+- **Streaming com `php artisan serve`**: O servidor built-in do PHP pode ter buffering que impede o streaming em tempo real. Por isso o streaming está desativado por padrão (`CHATBOT_STREAMING=false`). Para ativar, use Nginx/FPM ou Apache em produção.
+- **Conta gratuita Z.AI**: O modelo `glm-4.7-flash` retorna HTTP 429 frequentemente no plano gratuito. O modelo `glm-4.5-flash` (padrão) funciona de forma mais estável.
+- **Sem fila**: Respostas da IA são síncronas. Para alto volume, mover para filas (Laravel Horizon).
+
+## Roadmap
+
+- [ ] Suporte a upload de arquivos (RAG simples)
+- [ ] Múltiplos modelos configuráveis por conversa
+- [ ] Exportar conversa como PDF/Markdown
+- [ ] Deploy one-click (Railway, Fly.io)
+
+## Screenshots
+
+<!-- Adicione screenshots após rodar o projeto localmente -->
+<!-- ![Login](docs/screenshots/login.png) -->
+<!-- ![Chat](docs/screenshots/chat.png) -->
 
 ## Licença
 
-Este projeto está licenciado sob a Licença MIT.
-
-## Contato
-
-Para dúvidas ou informações adicionais, sinta-se à vontade para entrar em contato pelos detalhes fornecidos no repositório.
-
-```go
-
-Diego Paiva
+MIT — veja [LICENSE](LICENSE).
