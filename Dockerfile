@@ -1,32 +1,80 @@
-FROM php:8.4-fpm-alpine
+# syntax=docker/dockerfile:1
+
+FROM node:22-alpine AS frontend
+
+WORKDIR /app
+
+COPY package.json package-lock.json .npmrc ./
+RUN npm ci
+
+COPY resources ./resources
+COPY public ./public
+COPY postcss.config.js vite.config.js ./
+RUN npm run build
+
+FROM php:8.4-fpm-alpine AS runtime
+
+ENV APP_ENV=production \
+    APP_DEBUG=false \
+    COMPOSER_ALLOW_SUPERUSER=1 \
+    PORT=10000
 
 RUN apk add --no-cache \
-    nginx \
-    nodejs \
-    npm \
-    sqlite \
-    git \
-    curl \
-    && docker-php-ext-install pdo pdo_sqlite
+        curl \
+        gettext \
+        git \
+        nginx \
+        sqlite-libs \
+        su-exec \
+        unzip \
+    && apk add --no-cache --virtual .build-deps \
+        $PHPIZE_DEPS \
+        curl-dev \
+        sqlite-dev \
+    && docker-php-ext-install -j"$(nproc)" curl pdo_sqlite \
+    && apk del .build-deps
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
 
 COPY . .
+COPY --from=frontend /app/public/build ./public/build
 
-RUN composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev \
-    && npm ci \
-    && npm run build \
-    && rm -rf node_modules
+RUN composer install \
+        --no-dev \
+        --no-interaction \
+        --no-progress \
+        --prefer-dist \
+        --optimize-autoloader \
+    && rm -f bootstrap/cache/*.php \
+    && mkdir -p \
+        database \
+        storage/logs \
+        storage/framework/cache/data \
+        storage/framework/sessions \
+        storage/framework/views \
+        bootstrap/cache \
+    && chown -R www-data:www-data database storage bootstrap/cache
 
+COPY docker/nginx.conf.template /etc/nginx/http.d/default.conf.template
 COPY docker/nginx.conf /etc/nginx/nginx.conf
-COPY docker/start.sh /start.sh
-RUN chmod +x /start.sh
+COPY docker/entrypoint.sh /usr/local/bin/entrypoint
 
-RUN mkdir -p storage/logs storage/framework/{cache,sessions,views} bootstrap/cache \
-    && chown -R www-data:www-data storage bootstrap/cache
+RUN rm -f /etc/nginx/http.d/default.conf \
+    && mkdir -p \
+        /tmp/nginx-http.d \
+        /tmp/nginx-client-body \
+        /tmp/nginx-proxy \
+        /tmp/nginx-fastcgi \
+        /tmp/nginx-uwsgi \
+        /tmp/nginx-scgi \
+    && chown -R www-data:www-data /tmp/nginx-* \
+    && chmod +x /usr/local/bin/entrypoint
 
-EXPOSE 80
+EXPOSE 10000
 
-CMD ["/start.sh"]
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
+    CMD curl --fail --silent --show-error "http://127.0.0.1:${PORT:-10000}/up" || exit 1
+
+ENTRYPOINT ["/usr/local/bin/entrypoint"]

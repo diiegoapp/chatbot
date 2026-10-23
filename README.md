@@ -22,6 +22,7 @@ Aplicação web de chatbot monolítica com histórico de conversas persistido. C
 - Tema claro/escuro com persistência em `localStorage` e respeito a `prefers-color-scheme`
 - Interface responsiva: sidebar recolhível, safe area no mobile, 44px de área de toque
 - Rate limit de 20 mensagens/minuto por usuário
+- Limite diário configurável de chamadas à IA por usuário
 - Suporte a streaming SSE (desativado por padrão; veja Variáveis de Ambiente)
 
 ## Stack
@@ -84,12 +85,38 @@ Acesse: http://localhost:8000
 | `ZAI_API_KEY` | — | **Obrigatório.** Chave da Z.AI |
 | `ZAI_BASE_URL` | `https://api.z.ai/api/paas/v4` | Endpoint da API |
 | `ZAI_MODEL` | `glm-4.5-flash` | Modelo GLM a usar |
-| `ZAI_TIMEOUT` | `60` | Timeout em segundos |
+| `ZAI_TIMEOUT` | `25` | Timeout em segundos |
 | `ZAI_MAX_TOKENS` | `1024` | Máximo de tokens por resposta |
 | `ZAI_THINKING` | `disabled` | Raciocínio interno do modelo |
 | `CHATBOT_STREAMING` | `false` | Habilita SSE streaming |
 | `CHATBOT_CONTEXT_WINDOW` | `20` | Mensagens enviadas como contexto |
 | `CHATBOT_MAX_MESSAGE_LENGTH` | `4000` | Tamanho máximo de mensagem (chars) |
+| `CHATBOT_DAILY_LIMIT` | `100` | Máximo diário de chamadas à IA por usuário |
+| `REGISTRATION_ENABLED` | `true` | Exibe e habilita o cadastro; use `false` na demonstração pública |
+| `DEMO_MODE` | `false` | Exibe o aviso de dados efêmeros no login |
+| `DEMO_SHOW_CREDENTIALS` | `false` | Exibe no login as credenciais demo configuradas |
+| `DEMO_USER_NAME` | — | Nome do usuário criado pelo `DemoUserSeeder` |
+| `DEMO_USER_EMAIL` | — | E-mail do usuário criado pelo `DemoUserSeeder` |
+| `DEMO_USER_PASSWORD` | — | Senha do usuário demo; mantenha como segredo |
+
+## Deploy no Render
+
+O repositório inclui um [`render.yaml`](render.yaml) para um **Web Service** com runtime Docker e plano gratuito. A imagem usa build multi-stage, executa PHP-FPM e Nginx na porta fornecida por `PORT` (padrão `10000`) e expõe o health check `GET /up`.
+
+1. No Render, crie um Blueprint a partir deste repositório ou um Web Service com runtime Docker.
+2. Configure os três valores marcados com `sync: false`: `APP_KEY`, `ZAI_API_KEY` e `DEMO_USER_PASSWORD`.
+3. Ajuste `APP_URL` se o nome/URL atribuído ao serviço for diferente de `https://chatbot.onrender.com`.
+4. Faça o deploy. Na inicialização, o container cria o SQLite, aplica as migrations, cria/atualiza o usuário demo e aquece os caches do Laravel.
+
+Gere um valor para `APP_KEY` localmente, sem alterar o `.env`, com:
+
+```bash
+php artisan key:generate --show
+```
+
+> **Dados efêmeros:** o plano gratuito da Render não oferece disco persistente para este serviço. O banco SQLite, sessões, conversas e mensagens podem desaparecer a cada reinício ou novo deploy. A instância também entra em repouso após 15 minutos sem tráfego, então a primeira requisição seguinte pode demorar mais enquanto o serviço inicializa.
+
+O TLS termina na Render. O Laravel confia nos cabeçalhos do proxy, força URLs HTTPS em produção e marca o cookie de sessão como seguro.
 
 ## Rodando os testes
 
@@ -126,7 +153,7 @@ Veja [docs/DECISIONS.md](docs/DECISIONS.md).
 - [ ] Suporte a upload de arquivos (RAG simples)
 - [ ] Múltiplos modelos configuráveis por conversa
 - [ ] Exportar conversa como PDF/Markdown
-- [ ] Deploy one-click (Railway, Fly.io)
+- [x] Deploy via Docker no Render
 
 ## Screenshots
 

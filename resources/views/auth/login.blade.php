@@ -2,6 +2,19 @@
     <!-- Session Status -->
     <x-auth-session-status class="mb-4" :status="session('status')" />
 
+    @if (config('chatbot.demo_mode'))
+        <div class="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
+            <p>Demonstração: os dados podem ser apagados a qualquer momento.</p>
+
+            @if (config('chatbot.demo_show_credentials'))
+                <p class="mt-1 text-xs">
+                    E-mail: <code>{{ config('chatbot.demo_user.email') }}</code><br>
+                    Senha: <code>{{ config('chatbot.demo_user.password') }}</code>
+                </p>
+            @endif
+        </div>
+    @endif
+
     <form method="POST" action="{{ route('login') }}">
         @csrf
 
@@ -33,8 +46,14 @@
         </div>
 
         <div class="flex items-center justify-end mt-4">
+            @if (config('chatbot.registration_enabled') && Route::has('register'))
+                <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('register') }}">
+                    {{ __('Register') }}
+                </a>
+            @endif
+
             @if (Route::has('password.request'))
-                <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('password.request') }}">
+                <a class="ms-3 underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('password.request') }}">
                     {{ __('Forgot your password?') }}
                 </a>
             @endif

@@ -8,6 +8,7 @@ use App\Models\Conversation;
 use App\Models\User;
 use App\Services\Ai\ChatClient;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\RateLimiter;
 use Tests\TestCase;
 
 class MessageTest extends TestCase
@@ -166,5 +167,23 @@ class MessageTest extends TestCase
             ->assertJsonStructure(['error']);
 
         $this->assertDatabaseMissing('messages', ['conversation_id' => $conversation->id]);
+    }
+
+    public function test_daily_message_limit_returns_a_friendly_error(): void
+    {
+        config()->set('chatbot.daily_limit', 1);
+
+        $user = User::factory()->create();
+        $conversation = Conversation::factory()->create(['user_id' => $user->id]);
+        RateLimiter::clear('chat-daily:'.$user->id);
+
+        $this->actingAs($user)
+            ->postJson(route('messages.store', $conversation), ['content' => 'Primeira mensagem'])
+            ->assertOk();
+
+        $this->actingAs($user)
+            ->postJson(route('messages.store', $conversation), ['content' => 'Segunda mensagem'])
+            ->assertTooManyRequests()
+            ->assertJsonPath('error', 'Você atingiu o limite diário de mensagens. Tente novamente amanhã.');
     }
 }

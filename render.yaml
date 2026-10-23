@@ -1,0 +1,70 @@
+services:
+  - type: web
+    name: chatbot
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /up
+    envVars:
+      - key: APP_NAME
+        value: Chatbot
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_URL
+        value: https://chatbot.onrender.com
+      - key: APP_LOCALE
+        value: pt_BR
+      - key: APP_FALLBACK_LOCALE
+        value: pt_BR
+      - key: LOG_CHANNEL
+        value: stderr
+      - key: LOG_LEVEL
+        value: info
+      - key: DB_CONNECTION
+        value: sqlite
+      - key: DB_DATABASE
+        value: /var/www/html/database/database.sqlite
+      - key: CACHE_STORE
+        value: database
+      - key: SESSION_DRIVER
+        value: database
+      - key: SESSION_SECURE_COOKIE
+        value: "true"
+      - key: QUEUE_CONNECTION
+        value: sync
+      - key: REGISTRATION_ENABLED
+        value: "false"
+      - key: CHATBOT_DAILY_LIMIT
+        value: "100"
+      - key: CHATBOT_STREAMING
+        value: "false"
+      - key: CHATBOT_CONTEXT_WINDOW
+        value: "20"
+      - key: CHATBOT_MAX_MESSAGE_LENGTH
+        value: "4000"
+      - key: DEMO_MODE
+        value: "true"
+      - key: DEMO_SHOW_CREDENTIALS
+        value: "true"
+      - key: DEMO_USER_NAME
+        value: Usuário Demo
+      - key: DEMO_USER_EMAIL
+        value: demo@example.com
+      - key: ZAI_BASE_URL
+        value: https://api.z.ai/api/paas/v4
+      - key: ZAI_MODEL
+        value: glm-4.5-flash
+      - key: ZAI_TIMEOUT
+        value: "25"
+      - key: ZAI_MAX_TOKENS
+        value: "1024"
+      - key: ZAI_THINKING
+        value: disabled
+      - key: APP_KEY
+        sync: false
+      - key: ZAI_API_KEY
+        sync: false
+      - key: DEMO_USER_PASSWORD
+        sync: false
