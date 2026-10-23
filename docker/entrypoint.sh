@@ -17,7 +17,13 @@ mkdir -p \
     "$app_dir/storage/framework/cache/data" \
     "$app_dir/storage/framework/sessions" \
     "$app_dir/storage/framework/views" \
-    "$app_dir/bootstrap/cache"
+    "$app_dir/bootstrap/cache" \
+    /tmp/nginx-http.d \
+    /tmp/nginx-client-body \
+    /tmp/nginx-proxy \
+    /tmp/nginx-fastcgi \
+    /tmp/nginx-uwsgi \
+    /tmp/nginx-scgi
 
 if [ ! -f "$database_file" ]; then
     touch "$database_file"
@@ -26,7 +32,13 @@ fi
 chown -R www-data:www-data \
     "$app_dir/database" \
     "$app_dir/storage" \
-    "$app_dir/bootstrap/cache"
+    "$app_dir/bootstrap/cache" \
+    /tmp/nginx-http.d \
+    /tmp/nginx-client-body \
+    /tmp/nginx-proxy \
+    /tmp/nginx-fastcgi \
+    /tmp/nginx-uwsgi \
+    /tmp/nginx-scgi
 
 cd "$app_dir"
 
